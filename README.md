@@ -1,39 +1,39 @@
-# NCU — Machine Learning Quantum Molecular Dynamics
+# NCU
 
-**NCU** is a modular Python framework designed to couple **Density Functional Theory (DFT)** engines, **Machine Learning Interatomic Potentials (MLIPs)**, and **Molecular Dynamics (MD)** integrators into a customizable workflow for atomistic simulations and active learning.
+A personal research toolkit for running Machine Learning Molecular Dynamics (ML-MD) workflows without rewriting glue code every time I switch DFT packages or ML potentials.
 
-![Project Overview](./image.jpg)
+![Simulation Workflow](./image.jpg)
 
-## Core Capabilities
+## Why I'm Building This
 
-* **Unified Potential Interface:** Interchangeable wrappers for multiple DFT software packages (e.g., Quantum ESPRESSO, VASP, CP2K) and equivariant/neural ML potentials (e.g., MACE, NequIP, SchNet).
-* **Customizable MD Engine:** Modular time-integrators (Velocity Verlet, Langevin dynamics) with on-the-fly checkpointing.
-* **Structured Data I/O (`iodata`):** Fast binary checkpointing (`.npz`) and human-readable trajectory/array export (`.txt`/`.xyz`) for simulation state recovery and training dataset generation.
+When running atomistic simulations, moving data between DFT codes (like Quantum ESPRESSO or VASP), ML interatomic potentials (MACE, NequIP), and MD integrators usually turns into a pile of one-off scripts. I'm building **NCU** to keep everything under one clean Python interface so I can easily swap calculators, save checkpoints, and customize active-learning loops for my own systems.
 
-## Theoretical Background
+## The Physics in Short
 
-In ML-accelerated quantum molecular dynamics, a neural network potential approximates the Born–Oppenheimer potential energy surface $E_{\text{DFT}}(\{\mathbf{r}_i, Z_i\})$ as a sum of local atomic energy contributions:
+Instead of running expensive DFT calculations at every MD step, an ML potential predicts the total energy $E$ as a sum of atomic contributions based on local environments:
 
-$$E_{\text{ML}} = \sum_{i=1}^{N} \varepsilon_i\left(\{\mathbf{r}_{ij}\}_{j \in \mathcal{N}(i)}, Z_i\right)$$
+$$E = \sum_{i=1}^{N} \varepsilon_i\left(\{\mathbf{r}_{ij}\}_{j \in \mathcal{N}(i)}, Z_i\right)$$
 
-Atomic forces $\mathbf{F}_i$ are obtained via automatic differentiation of the total predicted energy with respect to nuclear coordinates $\mathbf{r}_i$, driving Newtonian equations of motion:
+Forces on each atom are then taken directly as the negative gradient of that energy to integrate Newton's equations of motion:
 
-$$\mathbf{F}_i = -\nabla_{\mathbf{r}_i} E_{\text{ML}} = m_i \frac{d^2 \mathbf{r}_i}{dt^2}$$
+$$\mathbf{F}_i = -\nabla_{\mathbf{r}_i} E = m_i \frac{d^2 \mathbf{r}_i}{dt^2}$$
 
-## Planned Code Structure
+## Planned Code Layout
+
+I'm organizing the code around a common `BaseCalculator` interface so the MD loop doesn't care whether forces come from a DFT run or a trained neural network:
 
 ```text
 NCU/
 ├── ncu/
-│   ├── iodata.py              # NumPy checkpoint (.npz) & text array I/O
+│   ├── iodata.py              # Reading/writing NumPy checkpoints (.npz) & text arrays
 │   ├── calculators/
-│   │   ├── base.py            # BaseCalculator abstract interface
-│   │   ├── dft.py             # Multi-code DFT runners & output parsers
-│   │   └── ml_potentials.py   # ML interatomic potential wrappers
+│   │   ├── base.py            # BaseCalculator class (energy & force interface)
+│   │   ├── dft.py             # Wrappers/parsers for DFT engines (QE, VASP, etc.)
+│   │   └── ml_potentials.py   # Wrappers for ML potentials (MACE, NequIP, PyTorch)
 │   ├── dynamics/
-│   │   ├── integrator.py      # Velocity Verlet & thermostat integrators
-│   │   └── simulation.py      # MD trajectory driver & checkpoint hooks
+│   │   ├── integrator.py      # Velocity Verlet & Langevin thermostats
+│   │   └── simulation.py      # Main MD loop + periodic checkpoint saving
 │   └── workflows/
-│       └── active_learning.py # Uncertainty-driven DFT -> ML retraining loop
+│       └── active_learning.py # Flag high-uncertainty frames -> DFT -> retrain
 ├── LICENSE
 └── README.md
