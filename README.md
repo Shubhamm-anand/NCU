@@ -1,4 +1,4 @@
-# NCU
+# QML tool
 
 A personal research toolkit for running Machine Learning Molecular Dynamics (ML-MD) workflows without rewriting complete code every time I switch DFT packages or ML potentials.
 
@@ -7,7 +7,7 @@ AI generated
 
 ## Why I'm Building This
 
-When running atomistic simulations, moving data between DFT codes (like Gaussian, ORCA), and then for continuing adiabatic process I need to do MD and again through that result (position) do new DFT and again MD loop and accordingly we will get PES. I'm building **NCU** to keep everything under one clean Python interface so I can easily swap calculators, save checkpoints, and customize active-learning loops for my own systems.
+When running atomistic simulations, moving data between DFT codes (like Gaussian, ORCA), and then for continuing adiabatic process I need to do MD and again through that result (position) do new DFT and again MD loop and accordingly we will get PES. I'm building **QML** to keep everything under one clean Python interface so I can easily swap calculators, save checkpoints, and customize active-learning loops for my own systems.
 
 
 
@@ -16,8 +16,8 @@ When running atomistic simulations, moving data between DFT codes (like Gaussian
 I'm organizing the code around a common `BaseCalculator` interface so the MD loop doesn't care whether forces come from a DFT run or a trained neural network:
 
 ```text
-NCU/
-├── ncu/
+QML/
+├── QML/
 │   ├── iodata.py              # Reading/writing NumPy checkpoints (.npz) & text arrays
 │   ├── calculators/
 │   │   ├── base.py            # BaseCalculator class (energy & force interface)
