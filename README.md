@@ -2,7 +2,7 @@
 
 A personal research toolkit for running Machine Learning Molecular Dynamics (ML-MD) workflows without rewriting complete code every time I switch DFT packages or ML potentials.
 
-![Project Overview](./images.jpeg)
+![Project Overview](./images2.png)
 
 ## Why I'm Building This
 
